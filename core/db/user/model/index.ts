@@ -8,6 +8,8 @@ require("dotenv").config();
 const userSchema = new Schema<IUser>(
   {
     email: { type: String, required: true },
+    firstname: { type: String, required: true },
+    lastname: { type: String, required: true },
     image: String,
     password: String,
     location: String,

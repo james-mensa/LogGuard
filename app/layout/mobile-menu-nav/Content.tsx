@@ -1,37 +1,28 @@
-
 // ----------------------------------------------------------------------
 
 import { SignButton } from "@/app/component/SignInButton";
+import { TabsLabel } from "@/app/component/TabLabel";
 
 interface NavItem {
   title: string;
-  handleClick: ()=>void;
-  component?: React.ReactElement
+  handleClick: () => void;
+  component?: React.ReactElement;
 }
 
-const navConfig: NavItem[] = [
+export const navContent: NavItem[] = [
   {
-    title: 'Home',
-    handleClick: ()=>{ },
-
+    title: "Home",
+    handleClick: () => {},
+    component: <TabsLabel path="/" label="Home" />,
   },
   {
-    title: 'About',
-    handleClick: ()=>{ },
+    title: "About",
+    handleClick: () => {},
+    component: <TabsLabel path="/" label="  About" />,
   },
-
-
-
-
   {
-   
-    title: 'Join now',
-    handleClick: ()=>{},
-    component:<SignButton title="Join now" onClick={()=>{}}/>
+    title: "Join now",
+    handleClick: () => {},
+    component: <SignButton title="Join now" path="/login" />,
   },
-
-  
- 
 ];
-
-export default navConfig;

@@ -42,6 +42,7 @@ export default function Theme({ children }: { children: React.ReactNode }) {
           })}
         >
           <BasicAppBar mode={mode} />
+          
           <Suspense fallback={<Box></Box>}>
             <Container
               sx={{

@@ -3,24 +3,23 @@ import {
   Avatar,
   Box,
   IconButton,
-  SxProps,
   Theme,
   Toolbar,
 } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import { ColorModeContext } from "../styles/Theme";
 import { ModeType } from "../utils";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import PretendardFont from "../styles/fonts";
-import { Label } from "./Label";
-import Image from "next/image";
 import MenuIcon from "@mui/icons-material/Menu";
 import { SignButton } from "./SignInButton";
 import { UsePathName } from "../hooks/UsePathName";
 import { TabsLabel } from "./TabLabel";
 import { useRouter } from "next/navigation";
+import NavMenu from '../layout/mobile-menu-nav'
+
 export default function BasicAppBar({
+
   mode,
   showMenu,
 }: {
@@ -28,6 +27,10 @@ export default function BasicAppBar({
   showMenu?: () => void;
 }) {
   const colorMode = React.useContext(ColorModeContext);
+  const [open,setOpen]=useState(false)
+  const ToggleDrawer = () => {
+    setOpen(!open);
+  }
   const path = UsePathName();
 
   const router = useRouter();
@@ -45,13 +48,9 @@ export default function BasicAppBar({
           justifyContent: "space-between",
         }}
       >
-        <Image
-          src={"/images/logGuard.png"}
-          width={35}
-          height={50}
-          style={styles.img}
-          alt="logo"
-        />
+        <IconButton>
+          <Avatar src={"/images/logGuard.png"} sx={styles.img} alt="logo" />
+        </IconButton>
 
         <Box sx={styles.tabs}>
           <Box sx={styles.headerLeftCompoment}>
@@ -62,12 +61,13 @@ export default function BasicAppBar({
             <SignButton
               active={isLogin}
               title="Sign in"
-              onClick={() => router.push("/login")}
+          path={'/login'}
             />
             <SignButton
               active={isSignUp}
               title="Register"
-              onClick={() => router.push("/register")}
+             
+              path={"/register"}
             />
           </Box>
         </Box>
@@ -84,10 +84,12 @@ export default function BasicAppBar({
             )}
           </IconButton>
           <Box sx={styles.menu}>
-            <IconButton sx={{ ml: 1 }} onClick={showMenu} color="inherit">
+            <IconButton sx={{ ml: 1 }} onClick={ToggleDrawer} color="inherit">
               <MenuIcon color="action" />
             </IconButton>
           </Box>
+          <NavMenu onCloseNav={ToggleDrawer} openNav={open}/>
+          
         </Box>
       </Toolbar>
     </AppBar>
@@ -109,10 +111,19 @@ const styles = {
       display: "none",
     },
   }),
-  img: {
-    height: "40px",
-    width: "40px",
-  },
+  img:(theme: Theme)=>( {
+    boxShadow: 'rgba(17, 12, 46, 0.1) 0px 48px 100px 0px',
+   
+    [theme.breakpoints.up("sm")]: {
+      height: "40px",
+      width: "40px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      height: "30px",
+      width: "30px",
+    },
+  }),
+
   headerLeftCompoment: {
     width: "50%",
     display: "flex",

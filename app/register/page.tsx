@@ -13,60 +13,56 @@ import { redirect } from "next/navigation";
 import { InputText } from "../component/InputText";
 import { Label } from "../component/Label";
 import { blue, grey } from "@mui/material/colors";
-import Link from "next/link";
 import { PageLogButton } from "../component/SignInButton";
 import { PlainButton } from "../component/PlainButton";
 import { useState } from "react";
-import { AuthApi } from "../services/auth";
 
 type FieldValue = {
   value: string;
   error?: boolean;
 };
 interface SignupFieldProps {
+  firstname: FieldValue;
+  lastname: FieldValue;
   email: FieldValue;
   password: FieldValue;
   submissionAttempt?: boolean;
 }
 
 const initialState: SignupFieldProps = {
-  email: { value: "", error: true },
-  password: { value: "", error: true },
+  firstname: { value: "",error:true },
+  lastname: { value: "" ,error:true},
+  email: { value: "",error:true },
+  password: { value: "" ,error:true},
 };
 
-export default function Login() {
+export default function SignUp() {
   const { data: session } = useSession();
   if (session) {
     redirect("/admin");
   }
   const [state, setState] = useState<SignupFieldProps>(initialState);
-  const handleChange = (key: keyof SignupFieldProps) => (value: string) => {
+
+  const handleChange = (key: keyof SignupFieldProps) => (value:string) => {
     setState((prev) => ({
-      ...prev,
-      [key]: {
-        ...(prev[key] as FieldValue),
-        value: value,
-        error: value.length < 1,
-      },
-    }));
-  };
-  const handleSubmit =async () => {
-    const isValid = Object.values(state).every((input) => !input.error);
-    if (isValid) {
-      console.log("Form submitted successfully", state);
-   await AuthApi.signIn({
-        email: state.email.value,
-        password: state.password.value,
-      });
-    } else {
-      setState((prev) => ({
         ...prev,
-        submissionAttempt: true,
+        [key]: { ...(prev[key] as FieldValue), value: value, error: value.length < 1 },
+    }));
+};
+const handleSubmit = () => {
+  const isValid = Object.values(state).every((input) => !input.error);
+  if (isValid) {
+      console.log('Form submitted successfully',state);
+  } else {
+      setState((prev) => ({
+          ...prev,
+          submissionAttempt: true,
       }));
       scrollTo({ top: 0, left: 0 });
-      console.log("Form submission failed. Please fill in all fields.", state);
-    }
-  };
+      console.log('Form submission failed. Please fill in all fields.',state);
+  }
+};
+
   return (
     <Container sx={styles.container}>
       <Box sx={styles.leftComponent}>
@@ -87,39 +83,44 @@ export default function Login() {
       </Box>
       <Box sx={styles.rightComponent}>
         <InputText
+          name="firstname"
+          placeholder="Enter your first name"
+          error={state.submissionAttempt && state.firstname.error}
+          errorMessage={'Please enter your first name'}
+          value={state.firstname.value}
+          onChange={handleChange('firstname')}
+        />
+
+        <InputText
+          name="lastname"
+          placeholder="Enter your surname"
+          error={state.submissionAttempt && state.lastname.error}
+          errorMessage={'surname field is required'}
+          value={state.lastname.value}
+          onChange={handleChange('lastname')}   />
+        <InputText
           name="email"
           placeholder="Enter your email address"
           error={state.submissionAttempt && state.email.error}
-          errorMessage={"email is required"}
+          errorMessage={'email is required'}
           value={state.email.value}
-          onChange={handleChange("email")}
-        />
+          onChange={handleChange('email')}   />
         <InputText
           name="password"
           type="password"
           placeholder="Enter your password"
           error={state.submissionAttempt && state.password.error}
-          errorMessage={"Please enter your password"}
+          errorMessage={'Please enter your password'}
           value={state.password.value}
-          onChange={handleChange("password")}
-        />
-        <PageLogButton title="Login" onClick={handleSubmit} />
-        <Stack
-          sx={{ width: "100%" }}
-          direction="row"
-          alignItems={"center"}
-          justifyContent={"space-between"}
-        >
-          <Link href="/">
-            <Label sx={styles.forgot_password}>Forgot Password?</Label>
-          </Link>
-        </Stack>
+          onChange={handleChange('password')}/>
+        <PageLogButton title="Register" onClick={handleSubmit} />
 
         <Stack
           width={"100%"}
           direction={"row"}
           alignItems={"center"}
           justifyContent={"space-between"}
+          sx={{}}
         >
           <Divider sx={styles.divider} />
           <Label sx={styles.indicator}>OR</Label>
@@ -144,6 +145,10 @@ export default function Login() {
           />
         </Stack>
       </Box>
+
+      <Box></Box>
+
+      <div></div>
     </Container>
   );
 }
@@ -244,7 +249,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    gap: 3,
+    gap: 1,
 
     [theme.breakpoints.up("sm")]: {
       width: "40%",

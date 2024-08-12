@@ -8,7 +8,7 @@ import { Utility } from "@/core/common/utils";
 require("dotenv").config();
 const ACCOUNT_ACTIVATION = process.env.ACCOUNT_ACTIVATION;
 
-class UserManager {
+export class UserManager {
   private static instance: UserManager;
 
   private constructor() {}
