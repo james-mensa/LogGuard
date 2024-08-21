@@ -23,6 +23,6 @@ export const navContent: NavItem[] = [
   {
     title: "Join now",
     handleClick: () => {},
-    component: <SignButton title="Join now" path="/login" />,
+    component: <SignButton title="Join now" path="/account/login" />,
   },
 ];

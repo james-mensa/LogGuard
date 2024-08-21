@@ -20,7 +20,7 @@ const AppHeader: React.FC = () => {
     <Box sx={styles.headerContainer}>
       <Box sx={styles.headerLeftCompoment}></Box>
       <Box sx={styles.headerRightComponent}>
-        <SignButton title="Sign in" onClick={() => {}} />
+        <SignButton path="" title="Sign in" onClick={() => {}} />
       </Box>
     </Box>
   );

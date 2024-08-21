@@ -1,7 +1,9 @@
+import { signIn } from "./signin";
+import { signUp } from "./SignUp";
+import { verifyAccount } from "./verifyAccount";
 
-import {signIn} from './signin'
-
-
-export const AuthApi={
-    signIn
-}
+export const AuthApi = {
+  signIn,
+  signUp,
+  verifyAccount
+};

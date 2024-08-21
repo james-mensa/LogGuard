@@ -5,6 +5,7 @@ import { Box, Container } from "@mui/material";
 import { ModeType } from "../utils";
 import BasicAppBar from "../component/BasicAppBar";
 import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {},
@@ -49,6 +50,7 @@ export default function Theme({ children }: { children: React.ReactNode }) {
                 ...styles.main,
               }}
             >
+               <Toaster position="top-center" />
               {children}
             </Container>
           </Suspense>

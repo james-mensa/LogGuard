@@ -12,7 +12,7 @@ try {
     console.log({response})
 } catch (error) {
     if (axios.isAxiosError(error)) {
-        console.error('Axios error occurred:',error.response.data);
+        console.error('Axios error occurred:',error);
 
     }  
 }

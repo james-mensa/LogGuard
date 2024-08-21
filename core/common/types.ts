@@ -11,3 +11,10 @@ export type IPassReset={
     new_password:string
     old_password:string
 }
+
+export interface UserRegisterTy{
+    email: string;
+    password: string;
+    lastname:string;
+    firstname: string;
+}

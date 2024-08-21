@@ -1,10 +1,10 @@
 import { GateWAY } from "@/core/lib/gate-way/mail";
-import { IUser } from "../types";
-import Users from "../user/model";
+import { IUser, UserAuthInfo } from "../db/types";
 import { IPassReset, IResponse } from "@/core/common/types";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import bcryt from "bcrypt";
 import { Utility } from "@/core/common/utils";
+import { Models } from "../db";
 require("dotenv").config();
 const ACCOUNT_ACTIVATION = process.env.ACCOUNT_ACTIVATION;
 
@@ -20,13 +20,13 @@ export class UserManager {
     return UserManager.instance;
   }
 
-  async preRegisterUser(user: IUser): Promise<IResponse> {
+  async preRegisterUser(user: UserAuthInfo): Promise<IResponse> {
     let response: IResponse = {
       msg: "",
       status: "",
     };
     const { firstname, lastname, email, password } = user;
-    const check_user = await Users.findOne({ email: email });
+    const check_user = await Models.User.findOne({ email: email });
     if (check_user) {
       response = {
         msg: "email used already!!",
@@ -43,7 +43,13 @@ export class UserManager {
       ACCOUNT_ACTIVATION,
       { expiresIn: "1d" }
     );
-    await GateWAY.RegisterUser(firstname, email, signtoken);
+    try {
+      await GateWAY.registerUser(firstname, email, signtoken);      
+      console.log({ token:'token'})
+    } catch (error) {
+      console.log({ email:error})
+    }
+
     response = {
       msg: "Registration successful, please check your email for activation link",
       status: "success",
@@ -64,7 +70,8 @@ export class UserManager {
         ACCOUNT_ACTIVATION
       ) as JwtPayload;
 
-      const check_user = await Users.findOne({ email: email });
+      console.log({ email, password,lastname, firstname})
+      const check_user = await Models.User.findOne({ email: email });
 
       if (check_user) {
         response = {
@@ -74,15 +81,16 @@ export class UserManager {
         return response;
       }
 const ___user=Utility.omit(user,["email","password","firstname","lastname"])
-      const _user = new Users({
+      const _user = new  Models.User({
         password,
         email,
         ...___user,
       });
+     
 
       const save_user = await _user.save();
 
-      const token = save_user.generate_token();
+      const token = save_user.generateToken();
       response = {
         msg: "success",
         status: 200,
@@ -103,7 +111,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
   async getUsers(): Promise<IUser[]> {
     let response: IUser[] = [];
     try {
-      const allusers = await Users.find({}).sort({ createdAt: "desc" });
+      const allusers = await Models.User.find({}).sort({ createdAt: "desc" });
       if (!allusers) {
       }
       if (allusers) {
@@ -125,17 +133,17 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
 
       //   console.log({ await: await GeoData });
 
-      const user_ac = await Users.findOne({ email: email });
+      const user_ac = await Models.User.findOne({ email: email });
       console.log(email);
 
       if (user_ac) {
-        if (user_ac.active === "false") {
+        if (!user_ac.active) {
           console.error("User is not active");
         }
-        if (user_ac.active === "true") {
-          const matchpassword = await user_ac.comparepassword(passsword);
+        if (user_ac.active) {
+          const matchpassword = await user_ac.comparePassword(passsword);
           if (matchpassword == true) {
-            const updateD = await Users.findByIdAndUpdate(
+            const updateD = await Models.User.findByIdAndUpdate(
               { _id: user_ac._id },
               {
                 $set: {
@@ -145,7 +153,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
               { new: true }
             );
 
-            const token = user_ac.generate_token();
+            const token = user_ac.generateToken();
             console.log({ update: updateD });
             return {
               user: user_ac,
@@ -180,7 +188,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
   async updateUserInfo(_id: string, data: any): Promise<IResponse> {
     let res: IResponse = { status: 401, msg: "" };
     try {
-      const updated_user = await Users.findOneAndUpdate(
+      const updated_user = await Models.User.findOneAndUpdate(
         { _id: _id },
         {
           $set: {
@@ -189,6 +197,9 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
         },
         { new: true }
       );
+      if(!updated_user){
+return res;
+      }
       res = {
         user: updated_user,
         status: 200,
@@ -209,7 +220,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
     let res: IResponse = { status: 401, msg: "" };
 
     try {
-      const _user = await Users.findOneAndUpdate(
+      const _user = await Models.User.findOneAndUpdate(
         { _id: _id },
         {
           $set: {
@@ -218,6 +229,10 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
         },
         { new: true }
       );
+      if(!_user){
+        return res
+      }
+
       res = { status: 200, msg: "user restricted", user: _user };
 
       await GateWAY.Contactmail(
@@ -236,7 +251,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
     let res: IResponse = { status: 401, msg: "" };
 
     try {
-      const _user = await Users.findOneAndUpdate(
+      const _user = await Models.User.findOneAndUpdate(
         { _id: _id },
         {
           $set: {
@@ -245,6 +260,9 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
         },
         { new: true }
       );
+      if(!_user) {
+        return res
+      }
       res = { status: 200, msg: "user unblocked", user: _user };
 
       await GateWAY.Contactmail(
@@ -265,10 +283,10 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
   }: IPassReset): Promise<IResponse> {
     let res: IResponse = { status: 401, msg: "error" };
     try {
-      const user_a = await Users.findById({ _id });
+      const user_a = await Models.User.findById({ _id });
       if (user_a) {
         console.log(user_a);
-        const matchpassword = await user_a.comparepassword(old_password);
+        const matchpassword = await user_a.comparePassword(old_password);
         if (matchpassword == false) {
           res = { status: "400", msg: "Not Permitted ,password mismatch" };
           console.log("Not Permitted");
@@ -276,7 +294,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
         if (matchpassword == true) {
           const salt = await bcryt.genSalt(10);
           const hash = await bcryt.hash(new_password, salt);
-          const _userUpdate = await Users.findOneAndUpdate(
+          const _userUpdate = await Models.User.findOneAndUpdate(
             { _id },
             {
               $set: {
@@ -286,6 +304,9 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
             { new: true }
           );
 
+          if(!_userUpdate){
+            return res;
+          }
           res = { status: 200, msg: "updated successfully", user: _userUpdate };
         }
       }
@@ -301,7 +322,7 @@ const ___user=Utility.omit(user,["email","password","firstname","lastname"])
       msg: "error",
     };
     try {
-      const check_user = await Users.findOne({ email: email });
+      const check_user = await Models.User.findOne({ email: email });
       if (!ACCOUNT_ACTIVATION) {
         return res;
       }

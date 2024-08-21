@@ -2,56 +2,60 @@ require("dotenv").config();
 import { IUser } from "@/core/db/types";
 import mailgen from "mailgen";
 import nodemailer from "nodemailer";
-const Transporter = nodemailer.createTransport({
+import fs from 'fs';
+import path from 'path';
+import generateEmailTemplate from "./generateEmail";
+import { exec } from "child_process";
+const transporter = nodemailer.createTransport({
   service: "gmail",
   secure: true,
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
+    // user: process.env.EMAIL_USER, // Environment variable for email user
+    // pass: process.env.EMAIL_PASS, // Environment variable for email password
+    user: 'loguardservice01@gmail.com',
+    pass: 'rbputgsuyinzwxyq'
   },
 });
 
-const RegisterUser = async (name: string, userEmail: string, token: string) => {
+const registerUser = async (name: string, userEmail: string, token: string) => {
+  console.log({name,userEmail,token})
   try {
-    const MAILGEN = new mailgen({
-      theme: "default",
-      product: {
-        name: "Cybertech Inc",
-        link: `${process.env.SITE_DOMAIN}`,
-      },
-    });
+    const confirmEmailTemplate=await generateEmailTemplate({
+      serviceLink: `${process.env.SITE_DOMAIN}`,
+      confirmationLink: `${process.env.SITE_DOMAIN}account/verification/?t=${token}`,
+    })
 
-    const emailbody = {
-      body: {
-        name: name,
-        intro: "Welcome to TheLog We're very excited to have you here.",
-        action: {
-          instructions:
-            "Please click below to verify your account lets connect",
-          button: {
-            color: "#22BC66", // Optional action button color
-            text: "Confirm your account",
-            link: `${process.env.SITE_DOMAIN}account/verification/?t=${token}`,
-          },
-        },
-        outro: "Need help  ?.",
-      },
-    };
 
-    const msg = MAILGEN.generate(emailbody);
-    let message = {
-      from: process.env.EMAIL,
+
+
+
+    if (confirmEmailTemplate) {
+      exec(`google-chrome ${confirmEmailTemplate}`, (err, stdout, stderr) => {
+        if (err) {
+          console.error(`Error opening file in Chrome: ${err.message}`);
+          return;
+        }
+      });
+    }
+
+
+
+    const message = {
+      from: process.env.EMAIL_USER, // Ensure this is set to the correct sender address
       to: userEmail,
-      subject: "Account verification",
-      html: msg,
+      subject: "Account Verification",
+       html: confirmEmailTemplate,
     };
 
-    await Transporter.sendMail(message);
+    await transporter.sendMail(message);
     return true;
   } catch (error) {
-    console.log(error);
+    console.error("Error sending verification email:", error);
+    return ;
   }
 };
+
+export default registerUser;
 
 const ResetPass = async (email_user: string, token: string) => {
   try {
@@ -86,7 +90,7 @@ const ResetPass = async (email_user: string, token: string) => {
       html: emailbody,
     };
 
-    await Transporter.sendMail(message);
+    await transporter.sendMail(message);
     return true;
   } catch (error) {
     console.log(error);
@@ -116,7 +120,7 @@ const Contactmail = async (emails: string, msg: string) => {
       subject: "Contact message",
       html: emailbody,
     };
-    await Transporter.sendMail(message);
+    await transporter.sendMail(message);
     return true;
   } catch (error) {
     if (error) {
@@ -152,7 +156,7 @@ const sendmail = async (user: IUser, msg: string) => {
       subject: "Contact message",
       html: emailbody,
     };
-    await Transporter.sendMail(message);
+    await transporter.sendMail(message);
     return true;
   } catch (error) {
     if (error) {
@@ -162,7 +166,7 @@ const sendmail = async (user: IUser, msg: string) => {
 };
 
 export const GateWAY = {
-  RegisterUser,
+  registerUser,
   ResetPass,
   Contactmail
 };

@@ -1,9 +1,11 @@
-export interface IUser {
+import { Model } from "mongoose";
+
+export interface IUser extends Document {
   firstname: string;
   lastname: string;
   email: string;
   password: string;
-  location?: string;
+  geoLocation?: string;
   ip?: string;
   image?: string;
   flag?: string;
@@ -19,5 +21,15 @@ export interface IUser {
   longitude?: number;
   warning?: number;
   active?: boolean;
+  // Add custom methods here
+  comparePassword(pass: string): Promise<boolean>;
+  generateToken(): string;
 }
 
+export interface UserModel extends Model<IUser> {}
+export interface UserAuthInfo {
+  lastname: string;
+  firstname: string;
+  email: string;
+  password: string;
+}
